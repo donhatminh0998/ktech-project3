@@ -145,14 +145,14 @@ public class ShopService {
         String[] filenameSplit = originalFilename.split("\\.");
         String extension = filenameSplit[filenameSplit.length - 1];
 
-        String uploadPath = profileDir + timeString +"product." + extension;                 // extension;
+        String uploadPath = profileDir + timeString +"product." + extension;
         try {
             image.transferTo(Path.of(uploadPath));
         }catch (IOException e){
             System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        String reqPath = "/static/"+ shopId + "/" +timeString + "product." +extension;               // + extension;
+        String reqPath = "/static/"+ shopId + "/" +timeString + "product." +extension;
         return reqPath;
     }
 

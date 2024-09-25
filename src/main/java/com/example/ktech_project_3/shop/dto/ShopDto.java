@@ -27,7 +27,7 @@ public class ShopDto {
                 .category(entity.getCategory())
                 .shopStatus(entity.getShopStatus())
                 .email(entity.getUser().getEmail())
-                .phoneNumber(entity.getUser().getPhone())
+                .phoneNumber(entity.getUser().getPhoneNumber())
                 .build();
     }
 }

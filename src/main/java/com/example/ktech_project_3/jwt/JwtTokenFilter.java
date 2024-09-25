@@ -12,19 +12,22 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j
+@Component
 public class JwtTokenFilter extends OncePerRequestFilter {
+
     private final JwtTokenUtils tokenUtils;
     private final UserDetailsService service;
 
-    public JwtTokenFilter(
-        JwtTokenUtils tokenUtils,
-        UserDetailsService service
-    ) {
+    public JwtTokenFilter (
+            JwtTokenUtils tokenUtils,
+            UserDetailsService service
+    ){
         this.tokenUtils = tokenUtils;
         this.service = service;
     }
@@ -35,24 +38,23 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null) {
-            filterChain.doFilter(request, response);
+
+        String authHeader =
+                request.getHeader(HttpHeaders.AUTHORIZATION);
+        if(authHeader == null){
+            filterChain.doFilter(request,response);
             return;
         }
-
         String[] headerSplit = authHeader.split(" ");
-        if (headerSplit.length != 2 || !headerSplit[0].equals("Bearer")) {
-            filterChain.doFilter(request, response);
+        if(headerSplit.length !=2 || !headerSplit[0].equals("Bearer")){
+            filterChain.doFilter(request,response);
             return;
         }
-
         String jwt = headerSplit[1];
         if (!tokenUtils.validate(jwt)) {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request,response);
             return;
         }
-
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         String username = tokenUtils
                 .parseClaims(jwt)
@@ -67,6 +69,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request,response);
+
     }
 }

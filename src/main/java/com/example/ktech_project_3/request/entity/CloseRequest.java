@@ -19,7 +19,7 @@ public class CloseRequest extends BaseEntity {
     @JoinColumn(name = "shop_id")
     private ShopEntity shop;
 
-    private String status; // PENDING, ACCEPTED, REJECTED
+    private String status;
 
     private String reason;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

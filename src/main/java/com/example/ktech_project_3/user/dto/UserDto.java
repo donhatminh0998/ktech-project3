@@ -28,9 +28,9 @@ public class UserDto {
                 .name(entity.getName())
                 .age(entity.getAge())
                 .email(entity.getEmail())
-                .phone(entity.getPhone())
+                .phone(entity.getPhoneNumber())
                 .profileImage(entity.getProfileImage())
-                .userRole(entity.getUserRole())
+                .userRole(entity.getRole())
                 .build();
     }
 

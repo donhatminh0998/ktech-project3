@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 public class EnumController {
     @GetMapping("/itemCategory")
     public ResponseEntity<List<String>> getCategories() {
-        // Chuyển đổi tất cả các giá trị enum thành danh sách chuỗi
         List<String> categories = Arrays.stream(ItemCategory.values())
                 .map(Enum::name)
                 .collect(Collectors.toList());

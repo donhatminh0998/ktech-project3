@@ -1,6 +1,8 @@
 package com.example.ktech_project_3.user.entity;
 
+import com.example.ktech_project_3.entity.BaseEntity;
 import com.example.ktech_project_3.order.entity.OrderEntity;
+import com.example.ktech_project_3.request.entity.OpenRequest;
 import com.example.ktech_project_3.shop.entity.ShopEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -17,29 +19,40 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user_table")
-public class UserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Setter
+public class UserEntity extends BaseEntity {
     private String username;
-    @Setter
     private String password;
-
-    @Setter
     private String name;
-    @Setter
     private Integer age;
-    @Setter
     private String email;
-    @Setter
-    private String phone;
-    @Setter
+    private String phoneNumber;
+    private String role;
     private String profileImage;
 
-    @Setter
-    private String userRole;
+
+
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    private Long id;
+//
+//    @Setter
+//    private String username;
+//    @Setter
+//    private String password;
+//
+//    @Setter
+//    private String name;
+//    @Setter
+//    private Integer age;
+//    @Setter
+//    private String email;
+//    @Setter
+//    private String phone;
+//    @Setter
+//    private String profileImage;
+//
+//    @Setter
+//    private String userRole;
 
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -47,6 +60,10 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private final List<OrderEntity> orderList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private final List<OpenRequest> openRequests = new ArrayList<>();
+
 
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 //    private final List<OpenRequest> openRequests = new ArrayList<>();

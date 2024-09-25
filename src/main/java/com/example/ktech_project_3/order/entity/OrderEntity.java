@@ -21,6 +21,7 @@ public class OrderEntity extends BaseEntity {
     private Integer quantity;
     private String status;
     private LocalDateTime orderTime;
+    private Integer totalMoney;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

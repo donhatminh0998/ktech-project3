@@ -1,5 +1,6 @@
 package com.example.ktech_project_3.user;
 
+import com.example.ktech_project_3.shop.entity.ShopEntity;
 import com.example.ktech_project_3.user.entity.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,26 +13,29 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Arrays;
 import java.util.Collection;
 
-@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CustomerUserDetails implements UserDetails {
+    @Getter
     private Long id;
     private String username;
     private String password;
-    private String nickname;
-    private String name;
-    private Integer age;
-    private String email;
-    private String phone;
-    private String profileImage;
-    private String userRole;
-
+    private String role;
+    private ShopEntity shop;
 
     @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.stream(userRole.split(","))
+        return Arrays.stream(role.split(","))
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
@@ -41,12 +45,8 @@ public class CustomerUserDetails implements UserDetails {
         details.id = entity.getId();
         details.username = entity.getUsername();
         details.password = entity.getPassword();
-        details.name = entity.getName();
-        details.age = entity.getAge();
-        details.email = entity.getEmail();
-        details.phone = entity.getPhone();
-        details.profileImage = entity.getProfileImage();
-        details.userRole = entity.getUserRole();
+        details.role = entity.getRole();
+        details.shop = entity.getShop();
         return details;
     }
 }

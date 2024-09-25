@@ -24,134 +24,121 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 
-@Slf4j
 @Service
-public class UserService {
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenUtils jwtTokenUtils;
-    private final UserRepository repository;
-    private final CustomerUserDetailsService customerUserDetailsService;
+@Slf4j
+public class UserService  {
+    private PasswordEncoder passwordEncoder;
+    private JwtTokenUtils jwtTokenUtils;
+    private UserRepository userRepository;
+    private final CustomerUserDetailsService customService;
+
     public UserService(
             PasswordEncoder passwordEncoder,
             JwtTokenUtils jwtTokenUtils,
-            UserRepository repository,
-            CustomerUserDetailsService customerUserDetailsService
+            UserRepository userRepository,
+            CustomerUserDetailsService customService
     ) {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtils = jwtTokenUtils;
-        this.repository = repository;
-        this.customerUserDetailsService = customerUserDetailsService;
+        this.customService = customService;
+        this.userRepository = userRepository;
 
-        if (repository.findByUsername("admin").isEmpty()) {
+        if (userRepository.findByUsername("admin").isEmpty()) {
             UserEntity admin = new UserEntity();
             admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setPassword(passwordEncoder.encode("123456"));
             admin.setEmail("admin@example.com");
-            admin.setPhone("010-123-4567");
-            admin.setUserRole("ROLE_ADMIN,READ,INSPECT");
-            repository.save(admin);
+            admin.setPhoneNumber("123-456-7890");
+            admin.setRole("ROLE_ADMIN,READ.REQUEST");
+            userRepository.save(admin);
         }
 
-        if (repository.findByUsername("user1").isEmpty()) {
-            UserEntity user1 = new UserEntity();
-            user1.setUsername("user1");
-            user1.setPassword(passwordEncoder.encode("user123"));
-            user1.setName("Mike");
-            user1.setEmail("user1@example.com");
-            user1.setPhone("010-333-4444");
-            user1.setUserRole("ROLE_USER,READ,ORDER");
-            repository.save(user1);
-        }
-
-        if (repository.findByUsername("user2").isEmpty()) {
-            UserEntity user2 = new UserEntity();
-            user2.setUsername("user2");
-            user2.setPassword(passwordEncoder.encode("user234"));
-            user2.setName("Nick");
-            user2.setEmail("user2@example.com");
-            user2.setPhone("010-222-3333");
-            user2.setUserRole("ROLE_INACTIVE,READ");
-            repository.save(user2);
-        }
     }
 
-    // CREATE
-    public void registerUser(RegisterUserDto dto) {
-        if (customerUserDetailsService.userExists(dto.getUsername()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already existed");
+
+    public void registerUser (
+            RegisterUserDto dto){
+        if (customService.userExists(dto.getUsername()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Username already exists");
         if (!dto.getPassword().equals(dto.getPasswordCheck()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password do not match");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Passwords do not match");
         UserEntity newUser = new UserEntity();
         newUser.setUsername(dto.getUsername());
         newUser.setPassword(passwordEncoder.encode(dto.getPassword()));
-        newUser.setUserRole("ROLE_INACTIVE,READ");
-        repository.save(newUser);
+        newUser.setRole("ROLE_INACTIVE");
+        userRepository.save(newUser);
     }
 
-    // LOGIN
     public JwtResponseDto loginUser(
             JwtRequestDto requestDto
-    ) {
+    ){
         if (requestDto.getUsername() == null || requestDto.getPassword() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please check your username and password again");
+            throw new IllegalArgumentException("Username and password must not be null.");
         }
         UserDetails userDetails;
         try {
-            userDetails = customerUserDetailsService.loadUserByUsername(requestDto.getUsername());
-        } catch (UsernameNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Username not found");
+            userDetails = customService.loadUserByUsername(requestDto.getUsername());
+        } catch (UsernameNotFoundException ex) {
+            throw new IllegalArgumentException("Username not found.");
         }
-        if (!passwordEncoder.matches(requestDto.getPassword(), userDetails.getPassword()))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong password");
+        if(!passwordEncoder.matches(
+                requestDto.getPassword(), userDetails.getPassword()))
+            throw new IllegalArgumentException( "Invalid password.");
         String jwt = jwtTokenUtils.generateToken(userDetails);
         JwtResponseDto responseDto = new JwtResponseDto();
         responseDto.setToken(jwt);
         return responseDto;
     }
+    public UserDto profile(
+            String username
+    ){
+        UserEntity user = userRepository.findByUsername(username).orElseThrow();
 
-    // UPDATE
-    public UserDto updateProfile (
-            String username,
-            UserProfileDto profileDto
-    ) {
-        Optional<UserEntity> optionalUser = repository.findByUsername(username);
-        if (optionalUser.isEmpty()) {
-            System.out.println("username not exists");
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        UserEntity user = optionalUser.get();
-        if (profileDto.getName() != null) {
-            user.setName(profileDto.getName());
-        }
-        if (profileDto.getAge() != null) {
-            user.setAge(Integer.valueOf(profileDto.getAge()));
-        }
-        if (profileDto.getEmail() != null) {
-            user.setEmail(profileDto.getEmail());
-        }
-        if (profileDto.getPhoneNumber() != null) {
-            user.setPhone(profileDto.getPhoneNumber());
-        }
-        repository.save(user);
-        if (user.getName() != null
-                && user.getAge() != null
-                && user.getEmail() != null
-                && user.getPhone() != null
-                && Objects.equals(user.getUserRole(), "ROLE_INACTIVE, READ"
-        )) {
-            user.setUserRole("ROLE_USER, READ, ORDER");
-        }
-        repository.save(user);
         return UserDto.fromEntity(user);
     }
 
+    public UserDto updateProfile(
+            String username,
+            UserProfileDto profileDto
+    ){
+        Optional<UserEntity> optionalUser =
+                userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Username not found");
+        }
+        UserEntity user = optionalUser.get();
 
-    // UPDATE IMAGE
+        if(profileDto.getName() != null){
+            user.setName(profileDto.getName());
+        }
+        if(profileDto.getAge() != null){
+            user.setAge(Integer.valueOf(profileDto.getAge()));
+        }
+        if(profileDto.getEmail() != null){
+            user.setEmail(profileDto.getEmail());
+        }
+        if(profileDto.getPhoneNumber() != null){
+            user.setPhoneNumber(profileDto.getPhoneNumber());
+        }
+        userRepository.save(user);
+
+        if(user.getName() != null && user.getAge() != null
+                && user.getEmail() != null && user.getPhoneNumber() != null
+                && Objects.equals(user.getRole(), "ROLE_INACTIVE"
+        )){
+            user.setRole("ROLE_USER,VIEW,ORDER,READ.REQUEST");
+            userRepository.save(user);
+        }
+
+        return UserDto.fromEntity(user);
+    }
     public UserDto updateImage(
             String username,
             MultipartFile image
-    ) {
-        Optional<UserEntity> optionalUser = repository.findByUsername(username);
+    ){
+        String timeString = String.valueOf(System.currentTimeMillis());
+        Optional<UserEntity> optionalUser =
+                userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
             System.out.println("username not exists");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
@@ -159,7 +146,7 @@ public class UserService {
         String profileDir = "media/" + username + "/";
         try {
             Files.createDirectories(Path.of(profileDir));
-        } catch (IOException e) {
+        }catch (IOException e){
             System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -168,20 +155,21 @@ public class UserService {
         String[] filenameSplit = originalFilename.split("\\.");
         String extension = filenameSplit[filenameSplit.length - 1];
 
-        String uploadPath = profileDir + "profile." + extension;
+        String uploadPath = profileDir + timeString +"profile." + extension;
         try {
             image.transferTo(Path.of(uploadPath));
-        } catch (IOException e) {
+        }catch (IOException e){
             System.out.println(e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        String reqPath = "/static/" + username + "/profile." + extension;
+        String reqPath = "/static/"+ username + "/" + timeString + "profile." + extension;
         UserEntity target = optionalUser.get();
 
         target.setProfileImage(reqPath);
 
-        return UserDto.fromEntity(repository.save(target));
+        return UserDto.fromEntity(userRepository.save(target));
     }
+}
 
 
 
@@ -218,4 +206,4 @@ public class UserService {
 //    public boolean userExist(String username) {
 //        return repository.existsByUsername(username);
 //    }
-}
+

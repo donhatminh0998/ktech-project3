@@ -19,12 +19,11 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("shops")
 public class ShopController {
     private final ShopService shopService;
     private final AuthenticationFacade facade;
 
-    @PutMapping("/update")
+    @PutMapping("/shop/update")
     public ResponseEntity<?> infoUpdate(
             @RequestBody
             OpenRequestDto dto
@@ -38,7 +37,7 @@ public class ShopController {
                     .body(e.getMessage());
         }
     }
-    @PostMapping("/product")
+    @PostMapping("/shop/product")
     public ResponseEntity<?> addProduct(
             @RequestParam String nameItem,
             @RequestParam Integer price,
@@ -61,7 +60,7 @@ public class ShopController {
                     .body(e.getMessage());
         }
     }
-    @PutMapping("/{productId}")
+    @PutMapping("/shop/{productId}")
     public ProductDto updateProduct(
             @PathVariable  Long productId,
             @RequestParam(required = false) String nameItem,
@@ -80,7 +79,7 @@ public class ShopController {
 
         return  shopService.updateProduct(shopId,productId,dto,image);
     }
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/shop/{productId}")
     public String deleteProduct(
             @PathVariable
             Long productId
@@ -89,7 +88,7 @@ public class ShopController {
         Long shopId = user.getShop().getId();
         return shopService.deleteProduct(shopId,productId);
     }
-    @GetMapping("/view")
+    @GetMapping("/view/shops")
     public List<ShopDto> shops(
             @RequestParam(name = "nameShop", required = false)
             String shopName,
@@ -98,7 +97,7 @@ public class ShopController {
     ){
         return shopService.shopsView(shopName,category);
     }
-    @GetMapping("/products")
+    @GetMapping("/view/products")
     public List<ProductViewDto> productsView(
             @RequestParam(name = "nameItem",required = false )
             String nameItem,

@@ -22,7 +22,7 @@ public class OpenRequestController {
     private final AuthenticationFacade authentication;
 
 
-    @PostMapping
+    @PostMapping("/openRequest")
     public ResponseEntity<?> openShop(
             @RequestBody OpenRequestDto dto) {
         String username = authentication.findUsername();
@@ -38,7 +38,7 @@ public class OpenRequestController {
                     .body("Error: " + e.getMessage());
         }
     }
-    @GetMapping("/{requestId}")
+    @GetMapping("/read/openRequest/{requestId}")
     public ResponseEntity<?> readOneRequest (
             @PathVariable
             Long requestId
@@ -52,7 +52,7 @@ public class OpenRequestController {
                     .body(e.getMessage());
         }
     }
-    @GetMapping("/readAll")
+    @GetMapping("/admin/openRequest/readAll")
     public List<OpenRequestView> readAllRequest () {
         String username = authentication.findUsername();
         if(username.equals("admin")) {return service.readAllRequest();}
@@ -60,7 +60,7 @@ public class OpenRequestController {
     }
 
 
-    @PostMapping("/confirm/{requestId}")
+    @PostMapping("/admin/openRequest/confirm/{requestId}")
     public ResponseEntity<?> confirmRequest(
             @PathVariable Long requestId,
             @RequestBody InspectOpenDto inspectDto

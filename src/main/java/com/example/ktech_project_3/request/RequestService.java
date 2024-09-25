@@ -95,7 +95,7 @@ public class RequestService {
 
             if (openRequest.getRequestStatus().equals("ACCEPTED")) {
                 String updatedRoles = "ROLE_BUSINESS,VIEW,ORDER";
-                user.setUserRole(updatedRoles);
+                user.setRole(updatedRoles);
                 userRepository.save(user);
                 log.info(user.toString());
 
@@ -144,7 +144,7 @@ public class RequestService {
         closeRepository.save(closeRequest);
         if(closeRequest.getStatus().equals("ACCEPTED")){
             UserEntity user = closeRequest.getShop().getUser();
-            user.setUserRole("ROLE_USER,VIEW,ORDER,READ.REQUEST");
+            user.setRole("ROLE_USER,VIEW,ORDER,READ.REQUEST");
             userRepository.save(user);
             ShopEntity shop = closeRequest.getShop();
             shop.setShopStatus("CLOSE");

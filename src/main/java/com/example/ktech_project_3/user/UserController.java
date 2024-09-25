@@ -13,91 +13,97 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-@Slf4j
 @RestController
-@RequestMapping("users")
+@Slf4j
 public class UserController {
-    private final UserService service;
-    private final CustomerUserDetailsService detailsService;
+    private final UserService userService;
+    // private final CustomUserDetailsService detailsService;
     private final AuthenticationFacade authentication;
 
-
-    public UserController(
-        UserService service,
-        CustomerUserDetailsService detailsService,
-        AuthenticationFacade authentication
+    public UserController(UserService userService,
+                          AuthenticationFacade authentication
+                          //  CustomUserDetailsService detailsService
     ) {
-        this.service = service;
-        this.detailsService = detailsService;
+        this.userService = userService;
         this.authentication = authentication;
+        //      this.detailsService = detailsService;
+
     }
 
-
-    // LOGIN
-    @GetMapping("login")
-    public JwtResponseDto loginUser(
-            @RequestBody
-            JwtRequestDto dto
-    ) {
-        return service.loginUser(dto);
-    }
-
-    // CREATE
-    @PostMapping("register")
-    public ResponseEntity<String> registerUser (
-            @RequestBody
-            RegisterUserDto dto
-    ) {
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody RegisterUserDto dto) {
         try {
-            service.registerUser(dto);
-            return ResponseEntity.ok("User registered successfully");
+            userService.registerUser(dto);
+            return ResponseEntity.ok("User registered successfully.");
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
 
-    // UPDATE
-    @PutMapping("/{username}/updateProfile")
-    public ResponseEntity<String> updateProfile (
-            @PathVariable
-            String username,
+    @GetMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody
+            JwtRequestDto requestDto) {
+        try {
+            JwtResponseDto responseDto = userService.loginUser(requestDto);
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping("users/profile")
+    public ResponseEntity<?> profile() {
+        String username = authentication.findUsername();
+        try {
+            UserDto userDto = userService.profile(username);
+            return ResponseEntity.ok(userDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
+    @PutMapping("users/updateProfile")
+    public ResponseEntity<String> updateProfile(
             @RequestBody
             UserProfileDto profileDto
     ) {
-        String username1 = authentication.findUsername();
+        String username = authentication.findUsername();
         try {
-            service.updateProfile(username1, profileDto);
+            userService.updateProfile(username, profileDto);
             return ResponseEntity.ok("User information updated successfully");
         } catch (Exception e) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Failed to update user information"
-            );
+                    HttpStatus.BAD_REQUEST, "Failed to update user information");
         }
     }
 
-    // UPDATE IMAGE
-    @PutMapping("/{username}/updateImage")
-    public ResponseEntity<?> updateImage (
-            @PathVariable
-            String username,
+    @PutMapping("users/updateImage")
+    public ResponseEntity<?> updateImage(
             @RequestParam
             MultipartFile image
     ) {
-        log.info("Request to upload profile image for user: {}", username);
+        String username = authentication.findUsername();
+        log.info("Request to upload profile img for user: {}", username);
         log.info("File name: {}", image.getOriginalFilename());
 
-        String username1 = authentication.findUsername();
         try {
-            UserDto updateUser = service.updateImage(username, image);
+            UserDto updateUser = userService.updateImage(username, image);
             return ResponseEntity.ok(updateUser);
         } catch (ResponseStatusException e) {
-            log.error("Error updating profile image: {}", e.getReason(),e);
+            log.error("Error updating profile image: {}", e.getReason(), e);
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        } catch (Exception e) {
+            log.error("Unexpected error occurred: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("An unexpected error occurred: " + e.getMessage());
         }
     }
+
 
 //    @GetMapping("my-profile")
 //    public String myProfile(
@@ -119,5 +125,6 @@ public class UserController {
 //    public String signUpForm() {
 //        return "register-form";
 //    }
+
 
 }

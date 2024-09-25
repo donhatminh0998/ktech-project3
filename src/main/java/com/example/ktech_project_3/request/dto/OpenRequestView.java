@@ -33,7 +33,7 @@ public class OpenRequestView {
                 .id(entity.getId())
                 .username(entity.getUser().getUsername())
                 .email(entity.getUser().getEmail())
-                .phoneNumber(entity.getUser().getPhone())
+                .phoneNumber(entity.getUser().getPhoneNumber())
                 .shopName(entity.getShopName())
                 .description(entity.getDescription())
                 .category(entity.getCategory())
